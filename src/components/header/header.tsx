@@ -16,7 +16,8 @@ const Header: React.FC<Props> = () => {
         value?.setAuth({
             nome: "",
             cpf: "",
-            dt_nascimento: "",
+            data_nascimento: "",
+            vacinado: false,
             municipio: "",
             createdAt: "",
             updatedAt: "",

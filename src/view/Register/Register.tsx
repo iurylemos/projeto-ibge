@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useCallback, useContext, useEffect, useState } from 'react';
-import { Form, Button, Container, InputGroup, DropdownButton, FormControl, Dropdown, Row, Col, Carousel } from 'react-bootstrap';
+import { Form, Button, Container, InputGroup, DropdownButton, FormControl, Dropdown, Row, Col, Carousel, Spinner, Toast } from 'react-bootstrap';
 import { ApiService } from '../../api/api.service';
 import { AuthContext } from '../../context/user-provider';
 import { checkCPF, checkDate, cpfMask, dateMask } from '../../utils/mask';
@@ -8,9 +8,14 @@ import slide2 from '../../assets/register/slide2.jpg';
 import slide3 from '../../assets/register/slide3.jpg';
 import { Link } from 'react-router-dom';
 import { config } from '../../config';
+import { BsXOctagon } from 'react-icons/bs';
 
 interface Props {
     // setAuth: Function;
+}
+
+interface IErrors {
+    message: string;
 }
 
 const Register: React.FC<Props> = () => {
@@ -25,6 +30,8 @@ const Register: React.FC<Props> = () => {
     const [estados, setEstados] = useState([]);
     const [validCPF, setValidCPF] = useState(false);
     const [validDate, setValidDate] = useState(false);
+    const [errors, setErrors] = useState<IErrors[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const fetchStates = useCallback(async () => {
         fetch(`${config.API_URL}/estados`)
@@ -60,21 +67,26 @@ const Register: React.FC<Props> = () => {
         }
     }
 
-    const handleSubmit = (e: any) => {
-        e.preventDefault();
-
-        apiService.register(nome, cpf, dt_nascimento, municipio).then(() => {
-
+    async function handleSubmit(): Promise<void> {
+        try {
+            setLoading(true);
+            await apiService.register(nome, cpf, dt_nascimento, municipio);
             contextType?.setAuth({
                 nome: nome,
                 cpf: cpf,
-                dt_nascimento: dt_nascimento,
+                data_nascimento: dt_nascimento,
+                vacinado: false,
                 municipio: municipio,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 getAuth: true
             });
-        });
+            setLoading(false);
+        } catch (error) {
+            errors.push(error);
+            setErrors([...errors]);
+            setLoading(false);
+        }
     }
 
     const validSubmit = (): boolean => {
@@ -154,11 +166,11 @@ const Register: React.FC<Props> = () => {
                 </Col>
                 <Col xs={12} md={12} sm={12} lg={5} xl={{ offset: 2 }}>
                     <Form>
-                        <Form.Group controlId="formBasicFirstName" style={{ width: '300px' }}>
+                        <Form.Group controlId="formBasicFirstName">
                             <Form.Label className="mt-2">Nome</Form.Label>
                             <Form.Control type="text" placeholder="Digite o seu nome" name="nome" value={nome} onChange={(e) => setNome(e.target.value)} />
                         </Form.Group>
-                        <Form.Group controlId="formBasicLastName" style={{ width: '300px' }}>
+                        <Form.Group controlId="formBasicLastName">
                             <Form.Label className="mt-2">CPF</Form.Label>
                             <Form.Control required isValid={validCPF} isInvalid={(!validCPF && cpf.length) ? true : false} type="text" placeholder="Digite o seu CPF" name="cpf" value={cpf} onChange={onChange} />
                             {
@@ -169,7 +181,7 @@ const Register: React.FC<Props> = () => {
                                 ) : (<></>)
                             }
                         </Form.Group>
-                        <Form.Group controlId="formBasicEmail" style={{ width: '300px' }}>
+                        <Form.Group controlId="formBasicEmail">
                             <Form.Label className="mt-2">Data de nascimento</Form.Label>
                             <Form.Control required isValid={validDate} isInvalid={(!validDate && dt_nascimento.length) ? true : false} type="text" placeholder="__/__/__" className='form-control' name="dt_nascimento" value={dt_nascimento} onChange={onChange} />
                             {
@@ -180,7 +192,7 @@ const Register: React.FC<Props> = () => {
                                 ) : (<></>)
                             }
                         </Form.Group>
-                        <Form.Group style={{ width: '300px' }}>
+                        <Form.Group>
                             <Form.Label className="mt-2">Estados</Form.Label>
                             <InputGroup className="mb-3">
                                 <DropdownButton
@@ -199,7 +211,7 @@ const Register: React.FC<Props> = () => {
                                 <FormControl aria-describedby="basic-addon1" defaultValue={estado.nome} />
                             </InputGroup>
                         </Form.Group>
-                        <Form.Group controlId="formBasicPassword" style={{ width: '300px' }}>
+                        <Form.Group controlId="formBasicPassword">
                             <Form.Label>Municipio</Form.Label>
                             <input className='form-control' disabled={!estado.nome || !municipios.length} placeholder='Digite o nome do municipio..' size={50} list="municipios" onChange={searchMunicipio} multiple />
                             <datalist id="municipios">
@@ -220,10 +232,50 @@ const Register: React.FC<Props> = () => {
                         </Form.Group>
                         <div style={{ width: "83%", textAlign: "center" }}>
                             <Button block size="lg" disabled={!validSubmit() ? true : false} className="mt-3" variant="dark" type="submit" onClick={handleSubmit}>
+                                {
+                                    loading ? (
+                                        <Spinner
+                                            as="span"
+                                            animation="grow"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                        />
+                                    ) : (<></>)
+                                }
                                 CADASTRAR
-                        </Button>
+                            </Button>
                         </div>
                     </Form>
+                    {
+                        errors.length ? errors.map((e) => (
+                            <div
+                                aria-live="polite"
+                                aria-atomic="true"
+                                style={{
+                                    position: 'relative',
+                                    minHeight: '100px',
+                                }}
+                                key={Math.random()}
+                            >
+                                <Toast
+                                    style={{
+                                        position: 'absolute',
+                                        top: '1em',
+                                        right: 0,
+                                    }}
+                                >
+                                    <Toast.Header>
+                                        {/* <img src="holder.js/20x20?text=%20" className="rounded mr-2" alt="" /> */}
+                                        <BsXOctagon className="rounded mr-2" />
+                                        <strong className="mr-auto ml-2">Error</strong>
+                                        <small>just now</small>
+                                    </Toast.Header>
+                                    <Toast.Body>Usuário invalido! Tente novamente</Toast.Body>
+                                </Toast>
+                            </div>
+                        )) : (<></>)
+                    }
                 </Col>
             </Row>
         </Container>

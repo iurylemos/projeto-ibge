@@ -1,3 +1,4 @@
+import { AxiosResponse } from "axios";
 import React, { useState, useContext, ChangeEvent } from "react";
 import { Button, Col, Container, Form, Row, Spinner, Toast } from "react-bootstrap";
 import { IconContext } from "react-icons";
@@ -7,22 +8,22 @@ import { ApiService } from "../../api/api.service";
 import { AuthContext } from "../../context/user-provider";
 import { checkCPF, checkDate, cpfMask, dateMask } from "../../utils/mask";
 
-interface Props {
-    // setAuth: Function;
+interface IErrors {
+    message: string;
 }
 
-const Login: React.FC<Props> = () => {
+const Login: React.FC = () => {
     const apiService = new ApiService();
     const contextType = useContext(AuthContext);
 
-    const [cpf, setCpf] = useState("");
-    const [dt_nascimento, setDtNascimento] = useState("");
-    const [validCPF, setValidCPF] = useState(false);
-    const [validDate, setValidDate] = useState(false);
-    const [errors, setErrors] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [cpf, setCpf] = useState<string>("");
+    const [dt_nascimento, setDtNascimento] = useState<string>("");
+    const [validCPF, setValidCPF] = useState<boolean>(false);
+    const [validDate, setValidDate] = useState<boolean>(false);
+    const [errors, setErrors] = useState<IErrors[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
-    const onChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    function onChange(e: ChangeEvent<HTMLInputElement>): void {
         e.preventDefault();
         if (e.currentTarget.name === "cpf") {
             if (checkCPF(cpfMask(e.currentTarget.value))) {
@@ -44,26 +45,28 @@ const Login: React.FC<Props> = () => {
         }
     }
 
-    const handleSubmit = (e: any) => {
-        e.preventDefault();
-
-        setLoading(true);
-        apiService.login(cpf, dt_nascimento).then((user: any) => {
-
+    async function handleSubmit(): Promise<void> {
+        try {
+            setLoading(true);
+            const resp: AxiosResponse = await apiService.login(cpf, dt_nascimento);
+            const user = resp.data;
+            console.log('USER', user)
             contextType?.setAuth({
-                nome: user["user"].nome,
+                nome: user.nome,
                 cpf: cpf,
-                dt_nascimento: dt_nascimento,
-                municipio: user["user"].municipio,
-                createdAt: user["user"].createdAt,
-                updatedAt: user["user"].updatedAt,
+                data_nascimento: dt_nascimento,
+                vacinado: user.vacinado,
+                municipio: user.municipio,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
                 getAuth: true
             });
             setLoading(false);
-        }).catch((e: any) => {
-            errors.push(e);
-            setErrors([...errors])
-        });
+        } catch (error) {
+            errors.push(error);
+            setErrors([...errors]);
+            setLoading(false);
+        }
     }
 
     function validSubmit(): boolean {
@@ -81,12 +84,12 @@ const Login: React.FC<Props> = () => {
                 <Col md={4} sm={8} xs={8}>
                     <Form>
                         <IconContext.Provider value={{ color: "green", className: "d-flex justify-content-center align-items-center", size: "10em", style: { alignItems: 'center' } }}>
-                            <div style={{ maxWidth: '300px', display: 'flex', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center' }}>
                                 <BsCheckCircle />
                             </div>
                         </IconContext.Provider>
 
-                        <Form.Group controlId="formBasicPassword" style={{ maxWidth: '300px' }}>
+                        <Form.Group controlId="formBasicPassword">
                             <Form.Label className="mt-2">CPF</Form.Label>
                             <Form.Control required isValid={validCPF} isInvalid={(!validCPF && cpf.length) ? true : false} type="text" placeholder="Digite o seu CPF" name="cpf" value={cpf} onChange={onChange} />
                             {
@@ -98,7 +101,7 @@ const Login: React.FC<Props> = () => {
                             }
                         </Form.Group>
 
-                        <Form.Group controlId="formBasicEmail" style={{ maxWidth: '300px' }}>
+                        <Form.Group controlId="formBasicEmail">
                             <Form.Label className="mt-2">Data de Nascimento</Form.Label>
 
                             <Form.Control required isValid={validDate} isInvalid={(!validDate && dt_nascimento.length) ? true : false} type="text" placeholder="__/__/__" className='form-control' name="dt_nascimento" value={dt_nascimento} onChange={onChange} />
@@ -121,8 +124,8 @@ const Login: React.FC<Props> = () => {
                             </Link>
                         </Form.Group>
 
-                        <div style={{ maxWidth: "300px", textAlign: "center" }}>
-                            <Button disabled={!validSubmit() ? true : false} style={{ width: "70%" }} className="mt-3" variant="dark" onClick={handleSubmit} size="lg" block={true}>
+                        <div style={{ textAlign: "center" }}>
+                            <Button disabled={!validSubmit() ? true : false} style={{ width: "70%" }} className="mt-3" variant="dark" onClick={async () => { await handleSubmit(); }} size="lg" block={true}>
                                 {
                                     loading ? (
                                         <Spinner
@@ -171,7 +174,7 @@ const Login: React.FC<Props> = () => {
                 </Col>
                 <Col md={4} sm={2} xs={2}></Col>
             </Row>
-        </Container>
+        </Container >
     );
 };
 
