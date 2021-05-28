@@ -1,4 +1,4 @@
-import React, { ChangeEvent, MouseEventHandler, useContext, useEffect, useState } from 'react';
+import React, { ChangeEvent, useCallback, useContext, useEffect, useState } from 'react';
 import { Form, Button, Container, InputGroup, DropdownButton, FormControl, Dropdown, Row, Col, Carousel } from 'react-bootstrap';
 import { ApiService } from '../../api/api.service';
 import { AuthContext } from '../../context/user-provider';
@@ -7,6 +7,7 @@ import slide1 from '../../assets/register/slide1.jpg';
 import slide2 from '../../assets/register/slide2.jpg';
 import slide3 from '../../assets/register/slide3.jpg';
 import { Link } from 'react-router-dom';
+import { config } from '../../config';
 
 interface Props {
     // setAuth: Function;
@@ -25,12 +26,17 @@ const Register: React.FC<Props> = () => {
     const [validCPF, setValidCPF] = useState(false);
     const [validDate, setValidDate] = useState(false);
 
+    const fetchStates = useCallback(async () => {
+        fetch(`${config.API_URL}/estados`)
+            .then((res: Response) => res.json())
+            .then((data) => {
+                setEstados(data["estados"]);
+            })
+    }, [])
+
     useEffect(() => {
-        (async () => {
-            const resp = await apiService.getStates();
-            setEstados(resp.data["estados"]);
-        })();
-    }, []);
+        fetchStates();
+    }, [fetchStates]);
 
     const onChange = (e: ChangeEvent<HTMLInputElement>): void => {
         e.preventDefault();
@@ -101,7 +107,7 @@ const Register: React.FC<Props> = () => {
             await loadMunicipios(estado["id"])
         }
 
-        setEstados(estado);
+        setEstado(estado);
     }
 
     return (
@@ -150,7 +156,7 @@ const Register: React.FC<Props> = () => {
                     <Form>
                         <Form.Group controlId="formBasicFirstName" style={{ width: '300px' }}>
                             <Form.Label className="mt-2">Nome</Form.Label>
-                            <Form.Control type="text" placeholder="Digite o seu nome" name="nome" value={nome} onChange={onChange} />
+                            <Form.Control type="text" placeholder="Digite o seu nome" name="nome" value={nome} onChange={(e) => setNome(e.target.value)} />
                         </Form.Group>
                         <Form.Group controlId="formBasicLastName" style={{ width: '300px' }}>
                             <Form.Label className="mt-2">CPF</Form.Label>
@@ -206,10 +212,10 @@ const Register: React.FC<Props> = () => {
                         </Form.Group>
                         <Form.Group className="mt-4">
                             Já tem cadastro? Faça o login
-                        <Link to="">
+                            <Link to="">
                                 <Button variant="success" size="sm" style={{ marginLeft: '2em' }}>
                                     Login
-                        </Button>
+                                 </Button>
                             </Link>
                         </Form.Group>
                         <div style={{ width: "83%", textAlign: "center" }}>
