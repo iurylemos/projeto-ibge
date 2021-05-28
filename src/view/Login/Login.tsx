@@ -1,5 +1,5 @@
 import { AxiosResponse } from "axios";
-import React, { useState, useContext, ChangeEvent } from "react";
+import React, { useState, useContext, ChangeEvent, useEffect } from "react";
 import { Button, Col, Container, Form, Row, Spinner, Toast } from "react-bootstrap";
 import { IconContext } from "react-icons";
 import { BsCheckCircle, BsXOctagon } from "react-icons/bs";
@@ -22,26 +22,36 @@ const Login: React.FC = () => {
     const [validDate, setValidDate] = useState<boolean>(false);
     const [errors, setErrors] = useState<IErrors[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [didMount, setDidMount] = useState(false);
+
+    useEffect(() => {
+        setDidMount(true);
+        return () => setDidMount(false);
+    }, [loading]);
+
+    if (!didMount) {
+        return null;
+    }
 
     function onChange(e: ChangeEvent<HTMLInputElement>): void {
         e.preventDefault();
-        if (e.currentTarget.name === "cpf") {
-            if (checkCPF(cpfMask(e.currentTarget.value))) {
+        if (e.target.name === "cpf") {
+            if (checkCPF(cpfMask(e.target.value))) {
                 setValidCPF(true)
             } else {
                 setValidCPF(false)
             }
 
-            setCpf(cpfMask(e.currentTarget.value));
-        } else if (e.currentTarget.name === "dt_nascimento") {
-            if (checkDate(e.currentTarget.value) && dateMask(e.currentTarget.value).length === 10) {
+            setCpf(cpfMask(e.target.value));
+        } else if (e.target.name === "dt_nascimento") {
+            if (checkDate(e.target.value) && dateMask(e.target.value).length === 10) {
                 setValidDate(true);
             } else {
                 setValidDate(false);
             }
 
-            if (dateMask(e.currentTarget.value).length <= 10)
-                setDtNascimento(e.currentTarget.value);
+            if (dateMask(e.target.value).length <= 10)
+                setDtNascimento(dateMask(e.target.value));
         }
     }
 

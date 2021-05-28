@@ -10,28 +10,25 @@ import { Link } from 'react-router-dom';
 import { config } from '../../config';
 import { BsXOctagon } from 'react-icons/bs';
 
-interface Props {
-    // setAuth: Function;
-}
-
 interface IErrors {
     message: string;
 }
 
-const Register: React.FC<Props> = () => {
+const Register: React.FC = () => {
     const apiService = new ApiService();
     const contextType = useContext(AuthContext);
-    const [nome, setNome] = useState("");
-    const [cpf, setCpf] = useState("");
-    const [dt_nascimento, setDtNascimento] = useState("");
+    const [nome, setNome] = useState<string>("");
+    const [cpf, setCpf] = useState<string>("");
+    const [dt_nascimento, setDtNascimento] = useState<string>("");
     const [municipio, setMunicipio] = useState("");
     const [municipios, setMunicipios] = useState<any[]>([]);
     const [estado, setEstado] = useState({ nome: "" });
-    const [estados, setEstados] = useState([]);
-    const [validCPF, setValidCPF] = useState(false);
-    const [validDate, setValidDate] = useState(false);
+    const [estados, setEstados] = useState<any[]>([]);
+    const [validCPF, setValidCPF] = useState<boolean>(false);
+    const [validDate, setValidDate] = useState<boolean>(false);
     const [errors, setErrors] = useState<IErrors[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [didMount, setDidMount] = useState(false);
 
     const fetchStates = useCallback(async () => {
         fetch(`${config.API_URL}/estados`)
@@ -42,28 +39,34 @@ const Register: React.FC<Props> = () => {
     }, [])
 
     useEffect(() => {
+        setDidMount(true);
         fetchStates();
+        return () => setDidMount(false);
     }, [fetchStates]);
+
+    if (!didMount) {
+        return null;
+    }
 
     const onChange = (e: ChangeEvent<HTMLInputElement>): void => {
         e.preventDefault();
-        if (e.currentTarget.name === "cpf") {
-            if (checkCPF(cpfMask(e.currentTarget.value))) {
+        if (e.target.name === "cpf") {
+            if (checkCPF(cpfMask(e.target.value))) {
                 setValidCPF(true)
             } else {
                 setValidCPF(false)
             }
 
-            setCpf(cpfMask(e.currentTarget.value));
-        } else if (e.currentTarget.name === "dt_nascimento") {
-            if (checkDate(e.currentTarget.value) && dateMask(e.currentTarget.value).length === 10) {
+            setCpf(cpfMask(e.target.value));
+        } else if (e.target.name === "dt_nascimento") {
+            if (checkDate(e.target.value) && dateMask(e.target.value).length === 10) {
                 setValidDate(true);
             } else {
                 setValidDate(false);
             }
 
-            if (dateMask(e.currentTarget.value).length <= 10)
-                setDtNascimento(e.currentTarget.value);
+            if (dateMask(e.target.value).length <= 10)
+                setDtNascimento(dateMask(e.target.value));
         }
     }
 
@@ -225,13 +228,13 @@ const Register: React.FC<Props> = () => {
                         <Form.Group className="mt-4">
                             Já tem cadastro? Faça o login
                             <Link to="">
-                                <Button variant="success" size="sm" style={{ marginLeft: '2em' }}>
+                                <Button variant="success" size="sm" style={{ marginLeft: '2em' }} block>
                                     Login
                                  </Button>
                             </Link>
                         </Form.Group>
                         <div style={{ width: "83%", textAlign: "center" }}>
-                            <Button block size="lg" disabled={!validSubmit() ? true : false} className="mt-3" variant="dark" type="submit" onClick={handleSubmit}>
+                            <Button block size="lg" disabled={!validSubmit() ? true : false} className="mt-3" variant="dark" type="submit" onClick={async () => { await handleSubmit(); }}>
                                 {
                                     loading ? (
                                         <Spinner
