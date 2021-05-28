@@ -153,7 +153,7 @@ const Login: React.FC = () => {
                     </Form>
 
                     {
-                        errors.length ? errors.map((e) => (
+                        (errors && errors.length) ? errors.map((e) => (
                             <div
                                 aria-live="polite"
                                 aria-atomic="true"

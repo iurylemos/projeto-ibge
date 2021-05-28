@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Card, Col, Container, Row, Table } from 'react-bootstrap';
-import HeaderFila from '../../components/fila/HeaderFila/HeaderFila';
-import ModalFila from '../../components/fila/ModalFila/ModalFila';
+import HeaderFila from '../../components/Fila/HeaderFila/HeaderFila';
+import ModalFila from '../../components/Fila/ModalFila/ModalFila';
 import { config } from '../../config';
 
 interface Props {
@@ -37,7 +37,7 @@ const Fila: React.FC<Props> = () => {
             })
     }, []);
 
-    function statusModal() {
+    function statusModal(): void {
         setModal(!modal);
     }
 
@@ -45,7 +45,7 @@ const Fila: React.FC<Props> = () => {
         fetchUsers();
     }, [fetchUsers]);
 
-    function sortFunction(a: any, b: any) {
+    function sortFunction(a: Usuario, b: Usuario): number {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
         return dateA > dateB ? 1 : -1;
@@ -70,7 +70,7 @@ const Fila: React.FC<Props> = () => {
                             </thead>
                             <tbody>
                                 {
-                                    usuariosNaoVacinados.length ? usuariosNaoVacinados.map((usuario, idx) => (
+                                    (usuariosNaoVacinados && usuariosNaoVacinados.length) ? usuariosNaoVacinados.map((usuario, idx) => (
                                         <tr key={idx + Math.random()}>
                                             <td>{idx + 1}</td>
                                             <td>{usuario.nome}</td>
@@ -99,7 +99,7 @@ const Fila: React.FC<Props> = () => {
                             </thead>
                             <tbody>
                                 {
-                                    usuariosVacinados.length ? usuariosVacinados.map((usuario, idx) => (
+                                    (usuariosVacinados && usuariosVacinados.length) ? usuariosVacinados.map((usuario, idx) => (
                                         <tr key={idx + Math.random()}>
                                             <td>{idx + 1}</td>
                                             <td>{usuario.nome}</td>

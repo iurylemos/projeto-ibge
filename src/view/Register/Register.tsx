@@ -206,7 +206,7 @@ const Register: React.FC = () => {
                                     name="estado"
                                 >
                                     {
-                                        estados.length ? estados.map((mun: any, i: number) => (
+                                        (estados && estados.length) ? estados.map((mun: any, i: number) => (
                                             <Dropdown.Item onClick={() => selectState(mun)} value={mun.nome} key={i + Math.random() + i.toString()} href="#">{mun.nome}</Dropdown.Item>
                                         )) : (<></>)
                                     }
@@ -219,7 +219,7 @@ const Register: React.FC = () => {
                             <input className='form-control' disabled={!estado.nome || !municipios.length} placeholder='Digite o nome do municipio..' size={50} list="municipios" onChange={searchMunicipio} multiple />
                             <datalist id="municipios">
                                 {
-                                    municipios.length ? municipios.map((mun, i) => (
+                                    (municipios && municipios.length) ? municipios.map((mun, i) => (
                                         <option key={i + Math.random() + i.toString()} value={mun.nome} />
                                     )) : (<></>)
                                 }
@@ -251,7 +251,7 @@ const Register: React.FC = () => {
                         </div>
                     </Form>
                     {
-                        errors.length ? errors.map((e) => (
+                        (errors && errors.length) ? errors.map((e) => (
                             <div
                                 aria-live="polite"
                                 aria-atomic="true"
